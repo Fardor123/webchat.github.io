@@ -17,7 +17,7 @@ const crypto = {
     encrypt: function(publicKeyPem, message) {
         try {
             const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
-            const encrypted = publicKey.encrypt(message, 'RSA-OAEP');
+            const encrypted = publicKey.encrypt((forge.util.encodeUtf8(message), 'RSA-OAEP');
             return forge.util.encode64(encrypted);
         } catch (e) {
             console.error("Encryption error:", e);
@@ -29,7 +29,8 @@ const crypto = {
         try {
             const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
             const decoded = forge.util.decode64(encryptedMessage);
-            return privateKey.decrypt(decoded, 'RSA-OAEP');
+            const decrypted = privateKey.decrypt(decoded, 'RSA-OAEP');
+            return forge.util.decodeUtf8(decrypted);
         } catch (e) {
             console.error("Decryption error:", e);
             return null;
@@ -45,10 +46,9 @@ const chatApp = {
     },
     username: '',
     connected: false,
-    groupId: null,  // Added group identifier
+    groupId: null,
 
     init: function() {
-        // Improved UI - single key pair input
         document.getElementById('connect').addEventListener('click', () => {
             this.connect();
         });
@@ -64,7 +64,6 @@ const chatApp = {
             }
         });
 
-        // Check for existing connection
         if (localStorage.getItem('currentGroup')) {
             this.tryReconnect();
         }
@@ -109,16 +108,15 @@ const chatApp = {
         this.username = username;
         this.connected = true;
         
-        // Create group ID based on public key fingerprint
-        const md = forge.md.sha256.create();
-        md.update(publicKey);
-        this.groupId = md.digest().toHex();
+        // Create consistent group ID based on public key
+        this.groupId = forge.md.sha256.create().update(publicKey).digest().toHex();
 
         // Save connection info
         localStorage.setItem('currentGroup', JSON.stringify({
             publicKey,
             privateKey,
-            username
+            username,
+            groupId: this.groupId
         }));
 
         // Show chat interface
@@ -131,8 +129,11 @@ const chatApp = {
 
         // Poll for new messages
         setInterval(() => {
+            const oldCount = chatStorage.messages.length;
             chatStorage.load(this.groupId);
-            this.displayMessages();
+            if (chatStorage.messages.length !== oldCount) {
+                this.displayMessages();
+            }
         }, 2000);
     },
 
@@ -170,10 +171,9 @@ const chatApp = {
 
     displayMessages: function() {
         const messagesContainer = document.getElementById('messages');
-        const currentMessages = messagesContainer.innerHTML;
-        let newMessages = '';
+        messagesContainer.innerHTML = '';
 
-        chatStorage.messagesessages.forEach(msg => {
+        chatStorage.messages.forEach(msg => {
             // Try to decrypt each message
             const decryptedText = crypto.decrypt(this.keys.privateKey, msg.encryptedText);
             
@@ -181,7 +181,7 @@ const chatApp = {
             if (decryptedText) {
                 const timestamp = new Date(msg.timestamp).toLocaleString();
                 
-                newMessages += `
+                messagesContainer.innerHTML += `
                     <div class="message">
                         <span class="username">${msg.username}</span>
                         <span class="timestamp">${timestamp}</span>
@@ -191,12 +191,8 @@ const chatApp = {
             }
         });
 
-        // Only update if messages changed
-        if (newMessages !== currentMessages) {
-            messagesContainer.innerHTML = newMessages;
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-       }
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
 };
 
 // Initialize the app when the page loads
