@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Group Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #chat { height: 400px; border: 1px solid #ccc; padding: 10px; overflow-y: scroll; margin-bottom: 10px; }
+        #message { width: 70%; padding: 8px; }
+        button { padding: 8px 15px; }
+        .message { margin-bottom: 10px; padding: 5px; border-radius: 5px; }
+        .received { background-color: #f0f0f0; }
+        .sent { background-color: #e1f5fe; text-align: right; }
+    </style>
+</head>
+<body>
+    <h1>Secure Group Chat</h1>
+    <div id="setup" style="display: block;">
+        <h2>Chat Setup</h2>
+        <p>Enter the same password as your friends to connect to the same encrypted chat:</p>
+        <input type="password" id="chatPassword" placeholder="Shared password">
+        <button id="connect">Connect</button>
+    </div>
+    <div id="chatContainer" style="display: none;">
+        <div id="chat"></div>
+        <input type="text" id="message" placeholder="Type your message">
+        <button id="send">Send</button>
+    </div>
+
+    <script src="chat.js"></script>
+</body>
+</html>
