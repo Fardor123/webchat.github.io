@@ -8,7 +8,7 @@ let chatStorage = {
         const data = localStorage.getItem('secureGroupChat');
         if (data) {
             this.messages = JSON.parse(data) || [];
-               }
+        }
     }
 };
 
@@ -34,6 +34,14 @@ const crypto = {
             console.error("Decryption error:", e);
             return null;
         }
+    },
+    
+    generateKeyPair: function() {
+        const keypair = forge.pki.rsa.generateKeyPair({bits: 2048});
+        return {
+            publicKey: forge.pki.publicKeyToPem(keypair.publicKey),
+            privateKey: forge.pki.privateKeyToPem(keypair.privateKey)
+        };
     }
 };
 
@@ -49,6 +57,10 @@ const chatApp = {
     init: function() {
         chatStorage.load();
         
+        document.getElementById('generateKeys').addEventListener('click', () => {
+            this.generateKeys();
+        });
+        
         document.getElementById('connect').addEventListener('click', () => {
             this.connect();
         });
@@ -63,6 +75,21 @@ const chatApp = {
                 this.sendMessage();
             }
         });
+        
+        // Check if we have keys in localStorage
+        const savedKeys = localStorage.getItem('chatKeys');
+        if (savedKeys) {
+            const keys = JSON.parse(savedKeys);
+            document.getElementById('publicKey').value = keys.publicKey;
+            document.getElementById('privateKey').value = keys.privateKey;
+        }
+    },
+    
+    generateKeys: function() {
+        const keys = crypto.generateKeyPair();
+        document.getElementById('publicKey').value = keys.publicKey;
+        document.getElementById('privateKey').value = keys.privateKey;
+        document.getElementById('loginError').textContent = '';
     },
     
     connect: function() {
@@ -71,9 +98,12 @@ const chatApp = {
         const username = document.getElementById('username').value.trim();
         
         if (!publicKey || !privateKey || !username) {
-            document.getElementById('loginError').textContent = 'All fields are are required';
+            document.getElementById('loginError').textContent = 'All fields are required';
             return;
         }
+        
+        // Save keys to localStorage for convenience
+        localStorage.setItem('chatKeys', JSON.stringify({publicKey, privateKey}));
         
         // Test if keys work by encrypting/decrypting a test message
         const testMessage = "test";
@@ -101,18 +131,22 @@ const chatApp = {
         
         // Load and display messages
         this.displayMessages();
+        
+        // Set up periodic message checking
+        this.messageCheckInterval = setInterval(() => {
+            this.displayMessages();
+        }, 1000);
     },
     
     sendMessage: function() {
         if (!this.connected) return;
-        
         
         const messageInput = document.getElementById('messageInput');
         const messageText = messageInput.value.trim();
         
         if (!messageText) return;
         
-        // Encrypt the message
+        // Encrypt the message with the group's public key
         const encryptedMessage = crypto.encrypt(this.keys.publicKey, messageText);
         if (!encryptedMessage) {
             alert('Failed to encrypt message');
@@ -140,7 +174,11 @@ const chatApp = {
         const messagesContainer = document.getElementById('messages');
         messagesContainer.innerHTML = '';
         
-        chatStorage.messages.forEach(msg => {
+        // Sort messages by timestamp
+        const sortedMessages = [...chatStorage.messages].sort((a, b) => 
+            new Date(a.timestamp) - new Date(b.timestamp));
+        
+        sortedMessages.forEach(msg => {
             // Try to decrypt each message
             const decryptedText = crypto.decrypt(this.keys.privateKey, msg.encryptedText);
             
@@ -150,12 +188,23 @@ const chatApp = {
                 messageElement.className = 'message';
                 
                 const timestamp = new Date(msg.timestamp).toLocaleString();
+                const isCurrentUser = msg.username === this.username;
                 
                 messageElement.innerHTML = `
-                    <span class="username">${msg.username}</span>
+                    <span class="username" style="color: ${isCurrentUser ? '#2c7be5' : '#333'}">${msg.username}</span>
                     <span class="timestamp">${timestamp}</span>
-                    <div>${decryptedText}</div>
+                    <div class="message-content">${decryptedText}</div>
                 `;
+                
+                if (isCurrentUser) {
+                    messageElement.style.textAlign = 'right';
+                    messageElement.style.marginLeft = 'auto';
+                    messageElement.style.maxWidth = '70%';
+                } else {
+                    messageElement.style.textAlign = 'left';
+                    messageElement.style.marginRight = 'auto';
+                    messageElement.style.maxWidth = '70%';
+                }
                 
                 messagesContainer.appendChild(messageElement);
             }
