@@ -1,102 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Group Chat</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        #login {
-            margin-bottom: 20px;
-        }
-        #chat {
-            display: none;
-        }
-        #messages {
-            height: 400px;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            background: #f9f9f9;
-        }
-        .message {
-            margin-bottom: 10px;
-            padding: 8px;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .username {
-            font-weight: bold;
-            color: #333;
-        }
-        .timestamp {
-            color: #666;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
-        .key-pair {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .key-pair textarea {
-            flex: 1;
-            min-height: 100px;
-        }
-        #messageInput {
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Group Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    #login {
+      margin-bottom: 20px;
+    }
+    #chat {
+      display: none;
+    }
+    #messages {
+      height: 400px;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: #f9f9f9;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 8px;
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .username {
+      font-weight: bold;
+      color: #333;
+    }
+    .timestamp {
+      color: #666;
+      font-size: 0.8em;
+      margin-left: 10px;
+    }
+    .key-pair {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .key-pair textarea {
+      flex: 1;
+      min-height: 100px;
+    }
+    #messageInput {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+      min-height: 60px;
+    }
+  </style>
 </head>
 <body>
-    <div id="login">
-        <h1>Secure Group Chat</h1>
-        <p>Enter your group key pair:</p>
-        
-        <div class="key-pair">
-            <div>
-                <label for="publicKey">Public Key</label><br>
-                <textarea id="publicKey" placeholder="-----BEGIN PUBLIC KEY-----..."></textarea>
-            </div>
-            <div>
-                <label for="privateKey">Private Key</label><br>
-                <textarea id="privateKey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
-            </div>
-        </div>
-        
-        <div>
-            <label for="username">Your Name:</label><br>
-            <input type="text" id="username" placeholder="Your display name">
-        </div>
-        
-        <button id="connect">Join Chat</button>
-        <p id="loginError" style="color: red;"></p>
-        
-        <div style="margin-top: 20px; background: #f0f0f0; padding: 10px; border-radius: 4px;">
-            <h3>How to use:</h3>
-            <p>1. Share the same public/private key pair with your group</p>
-            <p>2. Each member enters the same key pair</p>
-            <p>3. Messages will be visible to everyone with the same keys</p>
-        </div>
+  <div id="login">
+    <h1>Secure Group Chat</h1>
+    <p>Enter your group key pair:</p>
+
+    <div class="key-pair">
+      <div>
+        <label for="publicKey">Public Key</label><br>
+        <textarea id="publicKey" placeholder="-----BEGIN PUBLIC KEY-----..."></textarea>
+      </div>
+      <div>
+        <label for="privateKey">Private Key</label><br>
+        <textarea id="privateKey" placeholder="-----BEGIN PRIVATE KEY-----..."></textarea>
+      </div>
     </div>
-    
-    <div id="chat">
-        <h1>Secure Group Chat</h1>
-        <div id="messages"></div>
-        <textarea id="messageInput" placeholder="Type your message"></textarea>
-        <button id="sendMessage">Send</button>
+    <div>
+      <label for="username">Your Name:</label><br>
+      <input type="text" id="username" placeholder="Your display name">
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js"></script>
-    <script src="app.js"></script>
+    <button id="connect">Join Chat</button>
+    <p id="loginError" style="color: red;"></p>
+    <div style="margin-top: 20px; background: #f0f0f0; padding: 10px; border-radius: 4px;">
+      <h3>How to use:</h3>
+      <pp>1. Share the same public/private key pair with your group</p>
+      <p>2. Each member enters the same key pair</p>
+      <p>3. Messages will be visible to everyone with the same keys</p>
+    </div>
+  </div>
+
+  <div id="chat">
+    <h1>Secure Group Chat</h1>
+    <div id="messages"></div>
+    <textarea id="messageInput" placeholder="Type your message"></textarea>
+    <button id="sendMessage">Send</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
