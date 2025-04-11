@@ -1,13 +1,21 @@
 // Chat storage (single chat group)
-let chatStorage = {
+const chatStorage = {
   messages: [],
   save: function() {
-    localStorage.setItem('secureGroupChat', JSON.stringify(this.messages));
+    try {
+      localStorage.setItem('secureGroupChat', JSON.stringify(this.messages));
+    } catch (e) {
+      console.error("Failed to save messages:", e);
+    }
   },
   load: function() {
-    const data = localStorage.getItem('secureGroupChat');
-    if (datadata) {
-      this.messages = JSON.parse(data) || [];
+    try {
+      const data = localStorage.getItem('secureGroupChat');
+      if (data) {
+        this.messages = JSON.parse(data) || [];
+      }
+    } catch (e) {
+      console.error("Failed to load messages:", e);
     }
   }
 };
@@ -48,7 +56,9 @@ const chatApp = {
   connected: false,
 
   init: function() {
-    document.getElementById('connect').addEventListener('click', () => {
+    chatStorage.load();
+
+    document.getElementById('connect').addEventListener('('click', () => {
       this.connect();
     });
 
@@ -65,14 +75,15 @@ const chatApp = {
 
     // Try to load saved keys if available
     if (localStorage.getItem('chatKeys')) {
-      const savedKeys = JSON.parse(localStorage.getItem('chatKeys'));
-      document.getElementById('publicKey').value = savedKeys.publicKey || '';
-      document.getElementById('privateKey').value = savedKeys.privateKey || '';
-      document.getElementById('username').value = savedKeys.username || '';
+      try {
+        const savedKeys = JSON.parse(localStorage.getItem('chatKeys'));
+        document.getElementById('publicKey').value = savedKeys.publicKey || '';
+        document.getElementById('privateKey').value = savedKeys.privateKey || '';
+        document.getElementById('username').value = savedKeys.username || '';
+      } catch (e) {
+        console.error("Failed to load saved keys:", e);
+      }
     }
-
-    // Load messages
-    chatStorage.load();
   },
 
   connect: function() {
@@ -80,8 +91,16 @@ const chatApp = {
     const privateKey = document.getElementById('privateKey').value.trim();
     const username = document.getElementById('username').value.trim();
 
+    // Clear previous errors
+    document.getElementById('loginError').textContent = '';
+
     if (!publicKey || !privateKey || !username) {
       document.getElementById('loginError').textContent = 'All fields are required';
+      return;
+    }
+
+    if (username.length > 20) {
+      document.getElementById('loginError').textContent = 'Username must be 20 characters or less';
       return;
     }
 
@@ -118,15 +137,6 @@ const chatApp = {
 
     // Display messages
     this.displayMessages();
-
-    // Poll for new messages
-    setInterval(() => {
-      const oldCount = chatStorage.messages.length;
-      chatStorage.load();
-      if (chatStorage.messages.length !== oldCount) {
-        this.displayMessages();
-      }
-    }, 2000);
   },
 
   sendMessage: function() {
@@ -134,13 +144,22 @@ const chatApp = {
 
     const messageInput = document.getElementById('messageInput');
     const messageText = messageInput.value.trim();
+    document.getElementById('messageError').textContent = '';
 
-    if (!messageText) return;
+    if (!messageText) {
+      document.getElementById('messageError').textContent = 'Message cannot be empty';
+      return;
+    }
 
-    // Encrypt the message message
+    if (messageText.length > 1000) {
+      document.getElementById('messageError').textContent = 'Message too long (max 1000 chars)';
+      return;
+    }
+
+    // Encrypt the message
     const encryptedMessage = crypto.encrypt(this.keys.publicKey, messageText);
     if (!encryptedMessage) {
-      alert('Failed to encrypt message');
+      document.getElementById('messageError').textContent = 'Failed to encrypt message';
       return;
     }
 
@@ -173,13 +192,14 @@ const chatApp = {
       if (decryptedText) {
         const timestamp = new Date(msg.timestamp).toLocaleString();
         
-        messagesContainer.innerHTML += `
-          <div class="message">
-            <span class="username">${msg.username}</span>
-            <span class="timestamp">${timestamp}</span>
-            <div>${decryptedText}</div>
-          </div>
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message';
+        messageElement.innerHTML = `
+          <span class="username">${msg.username}</span>
+          <span class="timestamp">${timestamp}</span>
+          <div>${decryptedText}</div>
         `;
+        messagesContainer.appendChild(messageElement);
       }
     });
 
